@@ -10,6 +10,64 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
+// register
+app.post("/register", async (req, res) => {
+  const { name, email, username, password } = req.body;
+  const session = driver.session();
+
+  try {
+    if (!name || !email || !username || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existingUser = await session.run(
+      `
+      MATCH (u:User)
+      WHERE u.username = $username OR u.email = $email
+      RETURN u
+      LIMIT 1
+      `,
+      { username, email },
+    );
+
+    if (existingUser.records.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Username or email already exists" });
+    }
+
+    const idResult = await session.run(`
+      MATCH (u:User)
+      RETURN count(u) AS total
+    `);
+
+    const total = idResult.records[0].get("total").toNumber();
+    const userId = String(total + 1);
+
+    const result = await session.run(
+      `
+      CREATE (u:User {
+        userId: $userId,
+        name: $name,
+        email: $email,
+        username: $username,
+        password: $password,
+        bio: "Hey there! I am new here.",
+        createdAt: datetime()
+      })
+      RETURN u
+      `,
+      { userId, name, email, username, password },
+    );
+
+    res.status(201).json(result.records[0].get("u").properties);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
+
 // login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
@@ -49,6 +107,39 @@ app.get("/users/:userId", async (req, res) => {
       RETURN u
       `,
       { userId },
+    );
+
+    if (result.records.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(result.records[0].get("u").properties);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
+
+// update user profile
+app.put("/users/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { name, bio } = req.body;
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `
+      MATCH (u:User {userId: $userId})
+      SET u.name = $name,
+          u.bio = $bio
+      RETURN u
+      `,
+      {
+        userId,
+        name,
+        bio,
+      },
     );
 
     if (result.records.length === 0) {

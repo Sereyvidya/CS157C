@@ -1,5 +1,14 @@
 const BASE_URL = "http://localhost:5001";
 
+export async function registerUser(data) {
+  const res = await fetch(`${BASE_URL}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 export async function login(username, password) {
   const res = await fetch(`${BASE_URL}/login`, {
     method: "POST",
@@ -14,6 +23,15 @@ export async function getUser(userId) {
   return res.json();
 }
 
+export async function updateUser(userId, data) {
+  const res = await fetch(`${BASE_URL}/users/${userId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
 export async function getFollowers(userId) {
   const res = await fetch(`${BASE_URL}/users/${userId}/followers`);
   return res.json();
@@ -21,6 +39,11 @@ export async function getFollowers(userId) {
 
 export async function getFollowing(userId) {
   const res = await fetch(`${BASE_URL}/users/${userId}/following`);
+  return res.json();
+}
+
+export async function getMutualConnections(userId, otherUserId) {
+  const res = await fetch(`${BASE_URL}/users/${userId}/mutual/${otherUserId}`);
   return res.json();
 }
 

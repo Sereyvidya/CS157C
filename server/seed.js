@@ -1,63 +1,73 @@
 const fs = require("fs");
 const readline = require("readline");
-const neo4j = require("neo4j-driver");
-require("dotenv").config();
+const driver = require("./neo4j");
 
-const driver = neo4j.driver(
-  process.env.NEO4J_URI,
-  neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD),
-);
+const query = `
+UNWIND $batch AS row
+
+MERGE (u1:User { userId: row.a })
+ON CREATE SET
+  u1.username = "user" + row.a,
+  u1.name = "User " + row.a,
+  u1.email = "user" + row.a + "@example.com",
+  u1.password = "demo123",
+  u1.bio = "Hello, I am user " + row.a,
+  u1.createdAt = datetime()
+
+MERGE (u2:User { userId: row.b })
+ON CREATE SET
+  u2.username = "user" + row.b,
+  u2.name = "User " + row.b,
+  u2.email = "user" + row.b + "@example.com",
+  u2.password = "demo123",
+  u2.bio = "Hello, I am user " + row.b,
+  u2.createdAt = datetime()
+
+MERGE (u1)-[:FOLLOWS]->(u2)
+MERGE (u2)-[:FOLLOWS]->(u1)
+`;
+
+async function insertBatch(session, batch) {
+  if (batch.length === 0) return;
+  await session.run(query, { batch });
+}
 
 async function seed() {
   const session = driver.session();
-
-  const rl = readline.createInterface({
-    input: fs.createReadStream("data/facebook_combined.txt"),
-    crlfDelay: Infinity,
-  });
-
   const batchSize = 1000;
   let batch = [];
 
-  for await (const line of rl) {
-    const [a, b] = line.split(" ");
+  try {
+    const rl = readline.createInterface({
+      input: fs.createReadStream("data/facebook_combined.txt"),
+      crlfDelay: Infinity,
+    });
 
-    batch.push({ a, b });
+    for await (const line of rl) {
+      const [a, b] = line.trim().split(" ");
+      if (!a || !b) continue;
 
-    if (batch.length >= batchSize) {
-      await session.run(
-        `
-        UNWIND $batch AS row
-        MERGE (u1:User {userId: row.a})
-        MERGE (u2:User {userId: row.b})
-        MERGE (u1)-[:FOLLOWS]->(u2)
-        MERGE (u2)-[:FOLLOWS]->(u1)
-        `,
-        { batch },
-      );
+      batch.push({ a, b });
 
-      console.log(`Inserted batch of ${batch.length}`);
-      batch = [];
+      if (batch.length >= batchSize) {
+        await insertBatch(session, batch);
+        console.log(`Inserted batch of ${batch.length}`);
+        batch = [];
+      }
     }
-  }
 
-  // insert remaining
-  if (batch.length > 0) {
-    await session.run(
-      `
-      UNWIND $batch AS row
-      MERGE (u1:User {userId: row.a})
-      MERGE (u2:User {userId: row.b})
-      MERGE (u1)-[:FOLLOWS]->(u2)
-      MERGE (u2)-[:FOLLOWS]->(u1)
-      `,
-      { batch },
-    );
-  }
+    if (batch.length > 0) {
+      await insertBatch(session, batch);
+      console.log(`Inserted final batch of ${batch.length}`);
+    }
 
-  console.log("Seeding complete!");
-  await session.close();
-  await driver.close();
+    console.log("Seeding complete.");
+  } catch (err) {
+    console.error("Seeding failed:", err);
+  } finally {
+    await session.close();
+    await driver.close();
+  }
 }
 
 seed();

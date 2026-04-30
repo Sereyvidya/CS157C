@@ -1,2 +1,1 @@
-npm install neo4j-driver dotenv
 npm install express cors neo4j-driver dotenv
