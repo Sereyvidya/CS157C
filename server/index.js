@@ -20,6 +20,10 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
     const existingUser = await session.run(
       `
       MATCH (u:User)
@@ -62,7 +66,8 @@ app.post("/register", async (req, res) => {
 
     res.status(201).json(result.records[0].get("u").properties);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Registration error:", err);
+    res.status(500).json({ error: "Registration failed" });
   } finally {
     await session.close();
   }

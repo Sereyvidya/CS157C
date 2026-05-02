@@ -21,6 +21,7 @@ function App() {
 
   const [showRegister, setShowRegister] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showMutualsModal, setShowMutualsModal] = useState(false);
 
   const [registerForm, setRegisterForm] = useState({
     name: "",
@@ -39,6 +40,9 @@ function App() {
   const [following, setFollowing] = useState([]);
   const [followersVisible, setFollowersVisible] = useState(5);
   const [followingVisible, setFollowingVisible] = useState(5);
+  const [recommendationsVisible, setRecommendationsVisible] = useState(5);
+  const [popularVisible, setPopularVisible] = useState(5);
+  const [searchVisible, setSearchVisible] = useState(5);
   const LIST_PAGE_SIZE = 5;
   const [recommendations, setRecommendations] = useState([]);
   const [popularUsers, setPopularUsers] = useState([]);
@@ -107,6 +111,7 @@ function App() {
   async function handleSearch() {
     const results = await searchUsers(search);
     setSearchResults(results);
+    setSearchVisible(LIST_PAGE_SIZE);
   }
 
   async function handleFollow(targetUserId) {
@@ -182,6 +187,7 @@ function App() {
     );
     setMutuals(data);
     setMutualUser(otherUser);
+    setShowMutualsModal(true);
   }
 
   function handleLogout() {
@@ -343,7 +349,7 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-white px-4 py-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-lg p-8 text-center">
+        <div className="riounded-2xl bg-slate-900 border border-slate-800 shadow-lg p-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-2">
             Welcome, {currentUser.name}
           </h1>
@@ -398,7 +404,7 @@ function App() {
 
           {searchResults.length > 0 ? (
             <div className="space-y-3">
-              {searchResults.map((user) => {
+              {searchResults.slice(0, searchVisible).map((user) => {
                 const isSelf =
                   String(user.userId) === String(currentUser.userId);
                 const isFollowing = followingIds.has(String(user.userId));
@@ -442,39 +448,30 @@ function App() {
                   </div>
                 );
               })}
+
+              {searchResults.length > searchVisible && (
+                <div className="flex justify-center mt-3">
+                  <button
+                    onClick={() => setSearchVisible(searchResults.length)}
+                    className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
+                  >
+                    Show all
+                  </button>
+                </div>
+              )}
+              {searchVisible > LIST_PAGE_SIZE && (
+                <div className="flex justify-center mt-2">
+                  <button
+                    onClick={() => setSearchVisible(LIST_PAGE_SIZE)}
+                    className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
+                  >
+                    Show less
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-slate-400">No search results yet.</p>
-          )}
-        </div>
-
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-lg p-6">
-          <h2 className="text-2xl font-semibold mb-4">
-            Mutual Connections
-            {mutualUser ? ` with @${mutualUser.username}` : ""}
-          </h2>
-
-          {mutualUser ? (
-            mutuals.length > 0 ? (
-              <div className="space-y-3">
-                {mutuals.map((user) => (
-                  <div
-                    key={user.userId}
-                    className="rounded-xl bg-slate-800 border border-slate-700 p-4"
-                  >
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-slate-400 text-sm">@{user.username}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-slate-400">No mutual connections found.</p>
-            )
-          ) : (
-            <p className="text-slate-400">
-              Search for a user and click "View Mutuals" to see shared
-              connections.
-            </p>
           )}
         </div>
 
@@ -577,7 +574,7 @@ function App() {
 
             {recommendations.length > 0 ? (
               <div className="space-y-3">
-                {recommendations.map((user) => {
+                {recommendations.slice(0, recommendationsVisible).map((user) => {
                   const isFollowing = followingIds.has(String(user.userId));
 
                   return (
@@ -613,6 +610,27 @@ function App() {
                     </div>
                   );
                 })}
+
+                {recommendations.length > recommendationsVisible && (
+                  <div className="flex justify-center mt-3">
+                    <button
+                      onClick={() => setRecommendationsVisible(recommendations.length)}
+                      className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show all
+                    </button>
+                  </div>
+                )}
+                {recommendationsVisible > LIST_PAGE_SIZE && (
+                  <div className="flex justify-center mt-2">
+                    <button
+                      onClick={() => setRecommendationsVisible(LIST_PAGE_SIZE)}
+                      className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-slate-400">No recommendations right now.</p>
@@ -624,7 +642,7 @@ function App() {
 
             {popularUsers.length > 0 ? (
               <div className="space-y-3">
-                {popularUsers.map((user) => (
+                {popularUsers.slice(0, popularVisible).map((user) => (
                   <div
                     key={user.userId}
                     className="rounded-xl bg-slate-800 border border-slate-700 p-4"
@@ -636,6 +654,27 @@ function App() {
                     </p>
                   </div>
                 ))}
+
+                {popularUsers.length > popularVisible && (
+                  <div className="flex justify-center mt-3">
+                    <button
+                      onClick={() => setPopularVisible(popularUsers.length)}
+                      className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show all
+                    </button>
+                  </div>
+                )}
+                {popularVisible > LIST_PAGE_SIZE && (
+                  <div className="flex justify-center mt-2">
+                    <button
+                      onClick={() => setPopularVisible(LIST_PAGE_SIZE)}
+                      className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-slate-400">No popular users found.</p>
@@ -705,6 +744,39 @@ function App() {
                 Cancel
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showMutualsModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-4 z-50">
+          <div className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 shadow-xl p-6">
+            <h2 className="text-2xl font-semibold mb-4">
+              Mutual Friends with @{mutualUser?.username}
+            </h2>
+
+            {mutuals.length > 0 ? (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {mutuals.map((user) => (
+                  <div
+                    key={user.userId}
+                    className="rounded-xl bg-slate-800 border border-slate-700 p-4"
+                  >
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-slate-400 text-sm">@{user.username}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400">No mutual connections found.</p>
+            )}
+
+            <button
+              onClick={() => setShowMutualsModal(false)}
+              className="w-full mt-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 font-medium"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
