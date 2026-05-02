@@ -124,7 +124,7 @@ app.get("/users/:userId", async (req, res) => {
 // update user profile
 app.put("/users/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { name, bio } = req.body;
+  const { name, bio, email } = req.body;
   const session = driver.session();
 
   try {
@@ -132,13 +132,15 @@ app.put("/users/:userId", async (req, res) => {
       `
       MATCH (u:User {userId: $userId})
       SET u.name = $name,
-          u.bio = $bio
+          u.bio = $bio,
+          u.email = $email
       RETURN u
       `,
       {
         userId,
         name,
         bio,
+        email,
       },
     );
 

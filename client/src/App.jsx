@@ -32,6 +32,7 @@ function App() {
   const [editForm, setEditForm] = useState({
     name: "",
     bio: "",
+    email: "",
   });
 
   const [followers, setFollowers] = useState([]);
@@ -153,6 +154,7 @@ function App() {
     setEditForm({
       name: currentUser?.name || "",
       bio: currentUser?.bio || "",
+      email: currentUser?.email || "",
     });
     setShowEditProfile(true);
   }
@@ -342,8 +344,19 @@ function App() {
           <h1 className="text-4xl md:text-5xl font-bold mb-2">
             Welcome, {currentUser.name}
           </h1>
-          <p className="text-lg text-slate-300">@{currentUser.username}</p>
-          <p className="text-slate-400 mt-2">{currentUser.bio}</p>
+          <p className="text-lg text-slate-300">Username: @{currentUser.username}</p>
+          <p className="text-slate-400 mt-2">Bio: {currentUser.bio}</p>
+
+          <div className="flex justify-center gap-6 mt-4">
+            <div>
+              <p className="text-2xl font-bold text-blue-400">{followers.length}</p>
+              <p className="text-slate-400 text-sm">Followers</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-blue-400">{following.length}</p>
+              <p className="text-slate-400 text-sm">Following</p>
+            </div>
+          </div>
 
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <button
@@ -588,6 +601,19 @@ function App() {
                     setEditForm({ ...editForm, name: e.target.value })
                   }
                   placeholder="Name"
+                  className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Email</label>
+                <input
+                  value={editForm.email}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                  placeholder="Email"
+                  type="email"
                   className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
