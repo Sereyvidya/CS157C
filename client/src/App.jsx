@@ -37,6 +37,9 @@ function App() {
 
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [followersVisible, setFollowersVisible] = useState(5);
+  const [followingVisible, setFollowingVisible] = useState(5);
+  const LIST_PAGE_SIZE = 5;
   const [recommendations, setRecommendations] = useState([]);
   const [popularUsers, setPopularUsers] = useState([]);
   const [search, setSearch] = useState("");
@@ -481,7 +484,7 @@ function App() {
 
             {following.length > 0 ? (
               <div className="space-y-3">
-                {following.map((user) => (
+                {following.slice(0, followingVisible).map((user) => (
                   <div
                     key={user.userId}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-slate-800 border border-slate-700 p-4"
@@ -499,17 +502,73 @@ function App() {
                     </button>
                   </div>
                 ))}
+
+                {following.length > followingVisible && (
+                  <div className="flex justify-center mt-3">
+                    <button
+                      onClick={() => setFollowingVisible(following.length)}
+                      className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show all
+                    </button>
+                  </div>
+                )}
+                {followingVisible > LIST_PAGE_SIZE && (
+                  <div className="flex justify-center mt-2">
+                    <button
+                      onClick={() => setFollowingVisible(LIST_PAGE_SIZE)}
+                      className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-slate-400">Not following anyone yet.</p>
             )}
           </div>
 
-          <SectionCard
-            title="Followers"
-            users={followers}
-            emptyText="No followers yet."
-          />
+          <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4">Followers</h2>
+
+            {followers.length > 0 ? (
+              <div className="space-y-3">
+                {followers.slice(0, followersVisible).map((user) => (
+                  <div
+                    key={user.userId}
+                    className="rounded-xl bg-slate-800 border border-slate-700 p-4"
+                  >
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-slate-400 text-sm">@{user.username}</p>
+                  </div>
+                ))}
+
+                {followers.length > followersVisible && (
+                  <div className="flex justify-center mt-3">
+                    <button
+                      onClick={() => setFollowersVisible(followers.length)}
+                      className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show all
+                    </button>
+                  </div>
+                )}
+                {followersVisible > LIST_PAGE_SIZE && (
+                  <div className="flex justify-center mt-2">
+                    <button
+                      onClick={() => setFollowersVisible(LIST_PAGE_SIZE)}
+                      className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
+                    >
+                      Show less
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-slate-400">No followers yet.</p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
