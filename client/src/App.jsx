@@ -34,6 +34,8 @@ function App() {
     name: "",
     bio: "",
     email: "",
+    username: "",
+    password: "",
   });
 
   const [followers, setFollowers] = useState([]);
@@ -163,6 +165,8 @@ function App() {
       name: currentUser?.name || "",
       bio: currentUser?.bio || "",
       email: currentUser?.email || "",
+      username: currentUser?.username || "",
+      password: "",
     });
     setShowEditProfile(true);
   }
@@ -170,10 +174,31 @@ function App() {
   async function handleUpdateProfile(e) {
     e.preventDefault();
 
-    const updatedUser = await updateUser(currentUser.userId, editForm);
+    const dataToUpdate = {
+      name: editForm.name,
+      bio: editForm.bio,
+      email: editForm.email,
+      username: editForm.username,
+    };
+
+    // Only update password if user entered a new one
+    if (editForm.password.trim() !== "") {
+      dataToUpdate.password = editForm.password;
+    }
+
+    const updatedUser = await updateUser(currentUser.userId, dataToUpdate);
 
     if (updatedUser.userId) {
       setCurrentUser(updatedUser);
+      setUsername(updatedUser.username || "");
+      setPassword("");
+      setEditForm({
+        name: updatedUser.name || "",
+        bio: updatedUser.bio || "",
+        email: updatedUser.email || "",
+        username: updatedUser.username || "",
+        password: "",
+      });
       setShowEditProfile(false);
     } else {
       alert(updatedUser.message || "Update failed");
@@ -353,16 +378,22 @@ function App() {
           <h1 className="text-4xl md:text-5xl font-bold mb-2">
             Welcome, {currentUser.name}
           </h1>
-          <p className="text-lg text-slate-300">Username: @{currentUser.username}</p>
+          <p className="text-lg text-slate-300">
+            Username: @{currentUser.username}
+          </p>
           <p className="text-slate-400 mt-2">Bio: {currentUser.bio}</p>
 
           <div className="flex justify-center gap-6 mt-4">
             <div>
-              <p className="text-2xl font-bold text-blue-400">{followers.length}</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {followers.length}
+              </p>
               <p className="text-slate-400 text-sm">Followers</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-blue-400">{following.length}</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {following.length}
+              </p>
               <p className="text-slate-400 text-sm">Following</p>
             </div>
           </div>
@@ -574,47 +605,51 @@ function App() {
 
             {recommendations.length > 0 ? (
               <div className="space-y-3">
-                {recommendations.slice(0, recommendationsVisible).map((user) => {
-                  const isFollowing = followingIds.has(String(user.userId));
+                {recommendations
+                  .slice(0, recommendationsVisible)
+                  .map((user) => {
+                    const isFollowing = followingIds.has(String(user.userId));
 
-                  return (
-                    <div
-                      key={user.userId}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-slate-800 border border-slate-700 p-4"
-                    >
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-slate-400 text-sm">
-                          @{user.username}
-                        </p>
-                        <p className="text-sm text-slate-300 mt-1">
-                          Score: {user.score}
-                        </p>
+                    return (
+                      <div
+                        key={user.userId}
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-slate-800 border border-slate-700 p-4"
+                      >
+                        <div>
+                          <p className="font-medium">{user.name}</p>
+                          <p className="text-slate-400 text-sm">
+                            @{user.username}
+                          </p>
+                          <p className="text-sm text-slate-300 mt-1">
+                            Score: {user.score}
+                          </p>
+                        </div>
+
+                        {!isFollowing ? (
+                          <button
+                            onClick={() => handleFollow(user.userId)}
+                            className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
+                          >
+                            Follow
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUnfollow(user.userId)}
+                            className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
+                          >
+                            Unfollow
+                          </button>
+                        )}
                       </div>
-
-                      {!isFollowing ? (
-                        <button
-                          onClick={() => handleFollow(user.userId)}
-                          className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
-                        >
-                          Follow
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleUnfollow(user.userId)}
-                          className="rounded-lg bg-slate-700 hover:bg-slate-600 transition px-4 py-2 text-sm font-medium"
-                        >
-                          Unfollow
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
                 {recommendations.length > recommendationsVisible && (
                   <div className="flex justify-center mt-3">
                     <button
-                      onClick={() => setRecommendationsVisible(recommendations.length)}
+                      onClick={() =>
+                        setRecommendationsVisible(recommendations.length)
+                      }
                       className="rounded-lg bg-blue-600 hover:bg-blue-500 transition px-4 py-2 text-sm font-medium"
                     >
                       Show all
@@ -704,7 +739,9 @@ function App() {
               </div>
 
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Email</label>
+                <label className="block text-sm text-slate-300 mb-1">
+                  Email
+                </label>
                 <input
                   value={editForm.email}
                   onChange={(e) =>
@@ -712,6 +749,35 @@ function App() {
                   }
                   placeholder="Email"
                   type="email"
+                  className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">
+                  Username
+                </label>
+                <input
+                  value={editForm.username}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, username: e.target.value })
+                  }
+                  placeholder="Username"
+                  className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">
+                  New Password
+                </label>
+                <input
+                  value={editForm.password}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, password: e.target.value })
+                  }
+                  placeholder="Leave blank to keep current password"
+                  type="password"
                   className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
