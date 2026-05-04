@@ -147,6 +147,6 @@ Open your browser and navigate to: `http://localhost:5173`
 
 ## Authors
 
-Sereyvidya Vireak
-Shreya Hegde
-Tamanna Singh
+- Sereyvidya Vireak
+- Shreya Hegde
+- Tamanna Singh
