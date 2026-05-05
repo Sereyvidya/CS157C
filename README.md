@@ -5,27 +5,29 @@ A full-stack social networking platform built with React, Node.js, and Neo4j. Th
 ## Features
 
 ### Core Use Cases (11 Total)
--  **User Registration** - Create new accounts with validation
--  **User Login** - Secure authentication with credentials
--  **View Profile** - Display user details, bio, and follower counts
--  **Edit Profile** - Update name, email, and bio
--  **Follow/Unfollow** - Manage social connections
--  **View Followers** - See who follows you (with pagination)
--  **View Following** - See your followings (with pagination)
--  **Search Users** - Find users by name or username (with pagination)
--  **View Mutual Connections** - Find common followers with any user (modal popup)
--  **Get Recommendations** - AI-powered follow suggestions using graph traversal
--  **View Popular Users** - Discover users with the most followers
 
+- **User Registration** - Create an account with validation rules
+- **User Login** - Login with account credentials
+- **View Profile** - Display user details, bio, and follower counts
+- **Edit Profile** - Update name, email, username, password and bio
+- **Follow** - Add an account to your following
+- **Unfollow** - Remove an account from your following
+- **View Followers/Following** - See the accounts in your followers and following
+- **Search Users** - Find users by name or username
+- **View Mutual Connections** - Find common followers with any user through the search function
+- **Get Recommendations** - Recommend accounts that your followers follow
+- **View Popular Users** - Discover users with the most followers
 
 ## Tech Stack
 
 ### Frontend
+
 - **React 19.2.4** - UI library
 - **Vite** - Build tool and dev server
-- **Tailwind CSS** - Utility-first styling
+- **Tailwind CSS** - Styling
 
 ### Backend
+
 - **Node.js** - Runtime environment
 - **Express.js 5.2.1** - Web framework
 - **neo4j-driver 6.0.1** - Database driver
@@ -33,6 +35,7 @@ A full-stack social networking platform built with React, Node.js, and Neo4j. Th
 - **dotenv** - Environment variable management
 
 ### Database
+
 - **Neo4j Aura** - Cloud graph database
 - **88,000+** relationships from Facebook social network dataset
 
@@ -40,12 +43,12 @@ A full-stack social networking platform built with React, Node.js, and Neo4j. Th
 
 ```
 CS157C/
-├── client/                 # React frontend
+├── client/                # React frontend
 │   ├── src/
 │   │   ├── App.jsx        # Main React component
 │   │   ├── api.js         # API client functions
 │   │   ├── main.jsx       # Entry point
-│   │   └── index.css      # Global styles
+│   │   └── index.css
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js
@@ -70,6 +73,7 @@ CS157C/
 ## Installation
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/Sereyvidya/CS157C.git
 cd CS157C
@@ -78,6 +82,7 @@ cd CS157C
 ### 2. Install dependencies
 
 **Frontend:**
+
 ```bash
 cd client
 npm install
@@ -85,6 +90,7 @@ cd ..
 ```
 
 **Backend:**
+
 ```bash
 cd server
 npm install
@@ -141,9 +147,9 @@ Frontend runs on `http://localhost:5173`
 Open your browser and navigate to: `http://localhost:5173`
 
 **Demo credentials:**
+
 - Username: `user9`
 - Password: `demo123`
-
 
 ## Authors
 

@@ -50,11 +50,13 @@ app.post("/register", async (req, res) => {
       RETURN u
       LIMIT 1
       `,
-      { username, email }
+      { username, email },
     );
 
     if (check.records.length > 0) {
-      return res.status(400).json({ message: "Username or email already exists" });
+      return res
+        .status(400)
+        .json({ message: "Username or email already exists" });
     }
 
     const userId = Date.now().toString();
@@ -72,7 +74,7 @@ app.post("/register", async (req, res) => {
       })
       RETURN u
       `,
-      { userId, name, email, username, password }
+      { userId, name, email, username, password },
     );
 
     res.json(result.records[0].get("u").properties);
@@ -273,6 +275,7 @@ app.post("/unfollow", async (req, res) => {
     await session.close();
   }
 });
+
 // search users
 app.get("/search", async (req, res) => {
   const q = (req.query.q || "").toLowerCase();
@@ -288,7 +291,7 @@ app.get("/search", async (req, res) => {
       ORDER BY u.username
       LIMIT 25
       `,
-      { q }
+      { q },
     );
 
     res.json(result.records.map((r) => r.get("u").properties));
@@ -310,14 +313,14 @@ app.get("/popular", async (req, res) => {
       RETURN u, count(follower) AS followers
       ORDER BY followers DESC
       LIMIT 10
-      `
+      `,
     );
 
     res.json(
       result.records.map((r) => ({
         ...r.get("u").properties,
         followers: r.get("followers").toNumber(),
-      }))
+      })),
     );
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -343,14 +346,14 @@ app.get("/users/:userId/recommendations", async (req, res) => {
       ORDER BY score DESC
       LIMIT 10
       `,
-      { userId }
+      { userId },
     );
 
     res.json(
       result.records.map((r) => ({
         ...r.get("rec").properties,
         score: r.get("score").toNumber(),
-      }))
+      })),
     );
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -372,7 +375,7 @@ app.get("/users/:userId/mutual/:otherUserId", async (req, res) => {
       RETURN DISTINCT mutual
       ORDER BY mutual.username
       `,
-      { userId, otherUserId }
+      { userId, otherUserId },
     );
 
     res.json(result.records.map((r) => r.get("mutual").properties));
