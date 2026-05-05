@@ -37,6 +37,52 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// register
+app.post("/register", async (req, res) => {
+  const { name, email, username, password } = req.body;
+  const session = driver.session();
+
+  try {
+    const check = await session.run(
+      `
+      MATCH (u:User)
+      WHERE u.username = $username OR u.email = $email
+      RETURN u
+      LIMIT 1
+      `,
+      { username, email }
+    );
+
+    if (check.records.length > 0) {
+      return res.status(400).json({ message: "Username or email already exists" });
+    }
+
+    const userId = Date.now().toString();
+
+    const result = await session.run(
+      `
+      CREATE (u:User {
+        userId: $userId,
+        name: $name,
+        email: $email,
+        username: $username,
+        password: $password,
+        bio: "Hey there! I am new here.",
+        createdAt: datetime()
+      })
+      RETURN u
+      `,
+      { userId, name, email, username, password }
+    );
+
+    res.json(result.records[0].get("u").properties);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
+
 // update user
 app.put("/users/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -227,7 +273,115 @@ app.post("/unfollow", async (req, res) => {
     await session.close();
   }
 });
+// search users
+app.get("/search", async (req, res) => {
+  const q = (req.query.q || "").toLowerCase();
+  const session = driver.session();
 
+  try {
+    const result = await session.run(
+      `
+      MATCH (u:User)
+      WHERE toLower(u.username) CONTAINS $q
+         OR toLower(u.name) CONTAINS $q
+      RETURN u
+      ORDER BY u.username
+      LIMIT 25
+      `,
+      { q }
+    );
+
+    res.json(result.records.map((r) => r.get("u").properties));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
+
+// popular users
+app.get("/popular", async (req, res) => {
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `
+      MATCH (u:User)<-[:FOLLOWS]-(follower:User)
+      RETURN u, count(follower) AS followers
+      ORDER BY followers DESC
+      LIMIT 10
+      `
+    );
+
+    res.json(
+      result.records.map((r) => ({
+        ...r.get("u").properties,
+        followers: r.get("followers").toNumber(),
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
+
+// recommendations
+// check if current user follows A
+// yes A follows B then recommend B
+app.get("/users/:userId/recommendations", async (req, res) => {
+  const { userId } = req.params;
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `
+      MATCH (u:User {userId: $userId})-[:FOLLOWS]->(:User)-[:FOLLOWS]->(rec:User)
+      WHERE rec.userId <> $userId
+        AND NOT (u)-[:FOLLOWS]->(rec)
+      RETURN rec, count(*) AS score
+      ORDER BY score DESC
+      LIMIT 10
+      `,
+      { userId }
+    );
+
+    res.json(
+      result.records.map((r) => ({
+        ...r.get("rec").properties,
+        score: r.get("score").toNumber(),
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
+
+// mutual connections
+app.get("/users/:userId/mutual/:otherUserId", async (req, res) => {
+  const { userId, otherUserId } = req.params;
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `
+      MATCH (u1:User {userId: $userId})-[:FOLLOWS]->(mutual:User)
+      MATCH (u2:User {userId: $otherUserId})-[:FOLLOWS]->(mutual)
+      RETURN DISTINCT mutual
+      ORDER BY mutual.username
+      `,
+      { userId, otherUserId }
+    );
+
+    res.json(result.records.map((r) => r.get("mutual").properties));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    await session.close();
+  }
+});
 app.listen(5001, () => {
   console.log("Server running on port 5001");
 });
