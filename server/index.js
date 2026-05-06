@@ -159,6 +159,7 @@ app.put("/users/:userId", async (req, res) => {
     await session.close();
   }
 });
+
 // get one profile
 app.get("/users/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -385,6 +386,7 @@ app.get("/users/:userId/mutual/:otherUserId", async (req, res) => {
     await session.close();
   }
 });
+
 app.listen(5001, () => {
   console.log("Server running on port 5001");
 });
